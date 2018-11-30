@@ -97,76 +97,78 @@ hex_img_list = make_hex_list()
 random.shuffle(hex_img_list)
 random.shuffle(num_list)
 
-tokencounter = 0
-desert_hexes = []
-number_assignments = {}
 
-board_img = Image.open(BOARD_PATH)
-
-# TODO
-"""
 def paste_hexes():
-    for i in hex_img_list:
+    tokencounter = 0
+    desert_hexes = []
+    number_assignments = {}
+    board_img = Image.open(BOARD_PATH)
+    for i in range(len(hex_img_list)):
         hex_rotation = random.randint(0, 5) * 60
+        hex_image = hex_img_list[i].rotate(hex_rotation)
         if num_players in [3, 4]:
-            board_img.paste
-            """
-
-for i in range(len(hex_img_list)):
-    hex_rotation = random.randint(0, 5) * 60
-    hex_image = hex_img_list[i].rotate(hex_rotation)
-    if num_players in [3, 4]:
-        board_img.paste(hex_image, box=hex_coords[i], mask=hex_image)
-    elif num_players in [5, 6]:
-        board_img.paste(hex_image.resize())
-    # assign a number to the hex if it's not a desert
-    if hex_img_list[i] != hex_img_dict["desert"]:
-        number_assignments[i] = num_list[tokencounter]
-        tokencounter += 1
-    else:
-        desert_hexes.append(i)
+            board_img.paste(hex_image, box=hex_coords[i], mask=hex_image)
+        elif num_players in [5, 6]:
+            board_img.paste(hex_image.resize())
+        # assign a number to the hex if it's not a desert
+        if hex_img_list[i] != hex_img_dict["desert"]:
+            number_assignments[i] = num_list[tokencounter]
+            tokencounter += 1
+        else:
+            desert_hexes.append(i)
+    return board_img, desert_hexes, number_assignments
 
 
-def reset():
+board_img, desert_hexes, number_assignments = paste_hexes()
+
+
+def reset_assignments():
     random.shuffle(num_list)
     counter = 0
-    for j in number_assignments:
-        number_assignments[j] = num_list[counter]
+    for key in number_assignments:
+        number_assignments[key] = num_list[counter]
         counter += 1
-    return()
+    return number_assignments
 
 
-# test to make sure there aren't any adjacency problems
-done = False
-while not done:
-    good = True
-    for position in number_assignments:  # keys in number_assignments
-        for adj_pos in hex_adj[position]:
-            if adj_pos not in desert_hexes:
-                if number_assignments[position] in [6, 8] and number_assignments[adj_pos] in [6, 8]:
-                    good = False
-                elif number_assignments[position] in [2, 12] and number_assignments[adj_pos] in [2, 12]:
-                    good = False
-                else:
-                    pass
-            if not good:
-                break
-        if not good:
-            break
-    if good:
-        done = True
+def fix_assignments(number_assignments):
+    done = False
+    while not done:
+        if not is_good(number_assignments):
+            number_assignments = fix_assignments(reset_assignments())
+        else:
+            done = True
+    return number_assignments
+
+
+def is_good(number_assignments):
+    not_good = False
+    while not not_good:
+        for pos in number_assignments:
+            for adj_pos in hex_adj[pos]:
+                not_good = bad_together(number_assignments[pos],
+                                        number_assignments[adj_pos])
+    return not_good
+
+
+def bad_together(n1, n2):
+    if (n1 in [6, 8] and n2 in [6, 8]) or (n1 in [2, 12] and n2 in [2, 12]):
+        return False
     else:
-        reset()
+        return True
 
-for num in number_assignments:
-    num_rotation = random.randint(0, 359)
-    numtoken = num_img_dict[str(number_assignments[num])].resize(
-        (95, 95), Image.ANTIALIAS).rotate(num_rotation, Image.BICUBIC)
-    if num_players in [3, 4]:
-        board_img.paste(numtoken, box=(
-            hex_coords[num][0] + 64, hex_coords[num][1] + 82), mask=numtoken)
-    elif num_players in [5, 6]:
-        pass
+
+def paste_num_tokens(board_img):
+    for num in number_assignments:
+        num_rotation = random.randint(0, 359)
+        token_img_large = num_img_dict[str(number_assignments[num])]
+        token_img = token_img_large.resize((95, 95), Image.ANTIALIAS).rotate(
+            num_rotation, Image.BICUBIC)
+        board_img.paste(token_img, box=(
+            hex_coords[num][0] + 64, hex_coords[num][1] + 82), mask=token_img)
+    return board_img
+
 
 # board.save('temp.png')
+board_img = paste_num_tokens(board_img)
 board_img.show()
