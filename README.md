@@ -15,4 +15,4 @@ local directory as "temp.png".
 At the moment, I use this to generate boards which we then project onto
 a whiteboard and play using whiteboard markers. Future goals include
 adding 5-6 player functionality and integrating Catan expansions such
-as "Cities and Knights" and "Seafarers". 
+as Cities and Knights and Seafarers. 
