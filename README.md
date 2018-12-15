@@ -16,3 +16,7 @@ At the moment, I use this to generate boards which we then project onto
 a whiteboard and play using whiteboard markers. Future goals include
 adding 5-6 player functionality and integrating Catan expansions such
 as Cities and Knights and Seafarers. 
+
+Further functionality could include service allowing users to connect 
+to a server through a web app from mobile devices and play remotely,
+in the style of Jackbox Games.
